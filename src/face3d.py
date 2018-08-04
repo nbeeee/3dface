@@ -7,12 +7,13 @@
 # WARNING! All changes made in this file will be lost!
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QMainWindow,QApplication
+from PyQt5.QtWidgets import QMainWindow,QApplication,QMessageBox,QProgressDialog
 from PyQt5.QtGui import QPixmap,QIcon,QImage
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer,Qt,QThread
 import cv2
-import opencvoperator as oper
+import faceManager as oper
 import os
+import traceback
 
 class Ui_MainWindow(QMainWindow):
     def __init__(self):
@@ -106,12 +107,13 @@ class Ui_MainWindow(QMainWindow):
         QtCore.QMetaObject.connectSlotsByName(self)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.startCamera)
-
+        self.IsOpened = False
         #按钮信号槽
         self.openCamBtn.clicked.connect(self.openCamera)
         self.closeWinBtn.clicked.connect(self.closeWin)
         self.cutScreenBtn.clicked.connect(self.cutScreenAndFaceDet)
         self.initFaceBtn.clicked.connect(self.initWindow)
+        self.create3DBtn.clicked.connect(self.create3DFace)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -160,7 +162,45 @@ class Ui_MainWindow(QMainWindow):
                 showImage = self.coventFrametoQImage(frame,wframe,hframe)
                 self.framelabel.setPixmap(QPixmap.fromImage(showImage))
 
+    #生成3d人脸图像
+    def create3DFace(self):
+        if not os.path.exists(oper.facepath):
+            QMessageBox.warning(self,'提示','请先截取人脸照片',QMessageBox.Yes,QMessageBox.No)
+        else:
+            try:
+                #self.progressDialog = QProgressDialog(self)
+                #self.showProgressbar()
+                image = oper.gener3DFace()
+                fwidth = self.facelabel.width()
+                fheight = self.facelabel.height()
+                showImage = self.coventFrametoQImage(image, fwidth, fheight)
+                self.facelabel.setPixmap(QPixmap.fromImage(showImage))
+                #self.progressDialog.close()
+            except Exception as e:
+                print('traceback.format_exc():\n%s' % traceback.format_exc())
 
+    def showProgressbar(self):
+        self.step = 0
+        self.ptimer = QTimer(self)
+        self.ptimer.timeout.connect(self.addprocess)
+        self.ptimer.start()
+        self.progressDialog.setWindowModality(Qt.WindowModal)
+        self.progressDialog.setMinimumDuration(5)
+        self.progressDialog.setWindowTitle(self.tr("进度"))
+        self.progressDialog.setLabelText(self.tr("正在生成"))
+        # progressDialog.setCancelButtonText(self.tr("取消"))
+        self.progressDialog.setCancelButton(None)
+        self.progressDialog.setFixedWidth(300)
+        self.progressDialog.setFixedHeight(50)
+        self.progressDialog.setRange(0, 100)
+
+    def addprocess(self):
+        print("addprocessor  step 1......")
+        self.ptimer.stop()
+        if self.step <= 99:
+            self.step += 1
+            self.progressDialog.setValue(self.step)
+            self.ptimer.start(10)
     #初始化
     def initWindow(self):
         self.framelabel.clear()
@@ -173,6 +213,7 @@ class Ui_MainWindow(QMainWindow):
         if self.IsOpened:
             self.cap.release()
         self.close()
+
 
 
     def coventFrametoQImage(self,frame,w,h):
