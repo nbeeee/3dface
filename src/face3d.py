@@ -59,7 +59,7 @@ class Ui_MainWindow(QMainWindow):
         self.frame_3.setFrameShadow(QtWidgets.QFrame.Raised)
         self.frame_3.setObjectName("frame_3")
         self.facelabel = QtWidgets.QLabel(self.frame_3)
-        self.facelabel.setGeometry(QtCore.QRect(1, 412, 349, 358))
+        self.facelabel.setGeometry(QtCore.QRect(1, 1, 349, 358))
         self.facelabel.setText("")
         self.facelabel.setObjectName("facelabel")
         self.verticalLayout_2.addWidget(self.frame_3)
@@ -115,6 +115,13 @@ class Ui_MainWindow(QMainWindow):
         self.initFaceBtn.clicked.connect(self.initWindow)
         self.create3DBtn.clicked.connect(self.create3DFace)
 
+        if os.path.exists('face/face.jpg'):
+            face_img = cv2.imread('face/face.jpg')
+            fwidth = self.framelabel.width()
+            fheight = self.framelabel.height()
+            showImage = self.coventFrametoQImage(face_img, fwidth, fheight)
+            self.framelabel.setPixmap(QPixmap.fromImage(showImage))
+
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
@@ -168,6 +175,7 @@ class Ui_MainWindow(QMainWindow):
             QMessageBox.warning(self,'提示','请先截取人脸照片',QMessageBox.Yes,QMessageBox.No)
         else:
             try:
+                self.facelabel.setText('正在生成。。。。。。')
                 #self.progressDialog = QProgressDialog(self)
                 #self.showProgressbar()
                 image = oper.gener3DFace()
@@ -215,7 +223,6 @@ class Ui_MainWindow(QMainWindow):
         self.close()
 
 
-
     def coventFrametoQImage(self,frame,w,h):
         height, width, bytesPerComponent = frame.shape
         bytesPerLine = bytesPerComponent * width
@@ -227,6 +234,5 @@ class Ui_MainWindow(QMainWindow):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     win = Ui_MainWindow()
-
     win.show()
     sys.exit(app.exec_())

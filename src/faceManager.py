@@ -67,9 +67,7 @@ def gener3DFace():
                 {'vertices': vertices, 'colors': colors, 'triangles': prn.triangles})
     kpt = prn.get_landmarks(pos)
     np.savetxt(os.path.join(save_folder, name + '_kpt.txt'), kpt)
-    '''
 
-    '''
     camera_matrix, pose = estimate_pose(vertices)
     np.savetxt(os.path.join(save_folder, name + '_pose.txt'), pose)
     np.savetxt(os.path.join(save_folder, name + '_camera_matrix.txt'), camera_matrix)
@@ -78,10 +76,12 @@ def gener3DFace():
 
     #image_pose = plot_pose_box(image, camera_matrix, kpt)
     #cv2.imshow('sparse alignment', plot_kpt(image, kpt))
-    #cv2.imshow('dense alignment', plot_vertices(image, vertices))
-    image = plot_vertices(image, vertices)
-    return image
+
+    #cv2.imshow('dense alignment', image)
     #cv2.imshow('pose', plot_pose_box(image, camera_matrix, kpt))
     #cv2.waitKey(0)
+    image = (image * 255).astype(np.uint8)  # 将背景图片部分数值还原
+    image = plot_vertices(image, vertices)
+    return image
 
 
